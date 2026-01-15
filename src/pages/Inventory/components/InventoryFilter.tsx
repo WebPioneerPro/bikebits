@@ -1,25 +1,10 @@
+import { useEffect, useState } from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Select from "../../../components/form/Select";
 import SearchBox from "../../../components/form/input/SearchBox";
 import Button from "../../../components/ui/button/Button";
-
-const categoryOptions = [
-    { value: "all", label: "All Categories" },
-    { value: "brakes", label: "Brakes" },
-    { value: "drivetrain", label: "Drivetrain" },
-    { value: "wheels", label: "Wheels" },
-    { value: "cockpit", label: "Cockpit" },
-    { value: "safety", label: "Safety" },
-    { value: "tools", label: "Tools" },
-];
-
-const brandOptions = [
-    { value: "all", label: "All Brands" },
-    { value: "shimano", label: "Shimano" },
-    { value: "sram", label: "SRAM" },
-    { value: "continental", label: "Continental" },
-    { value: "brooks", label: "Brooks" },
-];
+import { categoryService } from "../../../services/categoryService";
+import { brandService } from "../../../services/brandService";
 
 const statusOptions = [
     { value: "all", label: "All Status" },
@@ -39,6 +24,38 @@ interface InventoryFilterProps {
 }
 
 const InventoryFilter = ({ filters, onFilterChange }: InventoryFilterProps) => {
+    const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([
+        { value: "all", label: "All Categories" }
+    ]);
+    const [brandOptions, setBrandOptions] = useState<{ value: string; label: string }[]>([
+        { value: "all", label: "All Brands" }
+    ]);
+
+    useEffect(() => {
+        const fetchFilterData = async () => {
+            try {
+                const [categories, brands] = await Promise.all([
+                    categoryService.getCategories(),
+                    brandService.getBrands(),
+                ]);
+
+                setCategoryOptions([
+                    { value: "all", label: "All Categories" },
+                    ...categories.map(cat => ({ value: cat.name.toLowerCase(), label: cat.name }))
+                ]);
+
+                setBrandOptions([
+                    { value: "all", label: "All Brands" },
+                    ...brands.map(brand => ({ value: brand.name.toLowerCase(), label: brand.name }))
+                ]);
+            } catch (error) {
+                console.error('Failed to fetch filter data:', error);
+            }
+        };
+
+        fetchFilterData();
+    }, []);
+
     return (
         <ComponentCard title="Filters" desc="Filter inventory items by category, brand, status, or search vehicles" action={<Button variant="outline" onClick={() => onFilterChange("reset", "")}>See All</Button>}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

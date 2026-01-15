@@ -1,191 +1,32 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import InventoryTable from "./components/InventoryTable";
 import InventoryFilter from "./components/InventoryFilter";
+import { productService } from "../../services/productService";
+import SpinnerOverlay from "../../components/common/SpinnerOverlay";
+import { useToast } from "../../context/ToastContext";
 
 // Define the data structure to share it
 export interface InventoryItem {
-    id: number;
+    id: string;
     name: string;
     category: string;
+    categoryName: string;
     brand: string;
+    brandName: string;
     quantity: number;
     price: number;
     status: string;
     vehicles: string[];
+    vehicleNames: string[];
+    hsnCode?: string;
+    shelfPosition?: string;
 }
 
-const inventoryData: InventoryItem[] = [
-    {
-        id: 1,
-        name: "Brake Pads",
-        category: "Brakes",
-        brand: "Shimano",
-        quantity: 25,
-        price: 45.99,
-        status: "In Stock",
-        vehicles: ["Mountain Bike Pro", "Road Racer X", "City Cruiser"],
-    },
-    {
-        id: 2,
-        name: "Chain",
-        category: "Drivetrain",
-        brand: "SRAM",
-        quantity: 5,
-        price: 29.99,
-        status: "Low Stock",
-        vehicles: ["Mountain Bike Pro"],
-    },
-    {
-        id: 3,
-        name: "Tire",
-        category: "Wheels",
-        brand: "Continental",
-        quantity: 0,
-        price: 89.99,
-        status: "Out of Stock",
-        vehicles: ["Road Racer X", "Gravel Explorer"],
-    },
-    {
-        id: 4,
-        name: "Handlebar",
-        category: "Cockpit",
-        brand: "Ritchey",
-        quantity: 15,
-        price: 65.99,
-        status: "In Stock",
-        vehicles: ["City Cruiser"],
-    },
-    {
-        id: 5,
-        name: "Saddle",
-        category: "Comfort",
-        brand: "Brooks",
-        quantity: 12,
-        price: 125.00,
-        status: "In Stock",
-        vehicles: ["Road Racer X", "City Cruiser", "Touring Deluxe"],
-    },
-    {
-        id: 6,
-        name: "Pedals",
-        category: "Drivetrain",
-        brand: "Shimano",
-        quantity: 8,
-        price: 79.99,
-        status: "In Stock",
-        vehicles: ["Mountain Bike Pro", "Gravel Explorer"],
-    },
-    {
-        id: 7,
-        name: "Helmet",
-        category: "Safety",
-        brand: "Giro",
-        quantity: 3,
-        price: 159.99,
-        status: "Low Stock",
-        vehicles: ["Mountain Bike Pro", "Road Racer X", "City Cruiser", "BMX Stunt"],
-    },
-    {
-        id: 8,
-        name: "Water Bottle",
-        category: "Accessories",
-        brand: "CamelBak",
-        quantity: 30,
-        price: 12.99,
-        status: "In Stock",
-        vehicles: ["All Bikes"],
-    },
-    {
-        id: 9,
-        name: "Derailleur",
-        category: "Drivetrain",
-        brand: "SRAM",
-        quantity: 6,
-        price: 189.99,
-        status: "In Stock",
-        vehicles: ["Mountain Bike Pro", "Gravel Explorer", "Road Racer X"],
-    },
-    {
-        id: 10,
-        name: "Bike Lock",
-        category: "Security",
-        brand: "Kryptonite",
-        quantity: 0,
-        price: 54.99,
-        status: "Out of Stock",
-        vehicles: ["City Cruiser", "Touring Deluxe"],
-    },
-    {
-        id: 11,
-        name: "Cycling Gloves",
-        category: "Apparel",
-        brand: "Pearl Izumi",
-        quantity: 18,
-        price: 34.99,
-        status: "In Stock",
-        vehicles: ["Road Racer X", "Mountain Bike Pro"],
-    },
-    {
-        id: 12,
-        name: "Bike Pump",
-        category: "Tools",
-        brand: "Topeak",
-        quantity: 10,
-        price: 42.99,
-        status: "In Stock",
-        vehicles: ["All Bikes"],
-    },
-    {
-        id: 13,
-        name: "Chain Lube",
-        category: "Maintenance",
-        brand: "Finish Line",
-        quantity: 25,
-        price: 8.99,
-        status: "In Stock",
-        vehicles: ["Mountain Bike Pro", "Road Racer X", "Gravel Explorer"],
-    },
-    {
-        id: 14,
-        name: "Bike Lights",
-        category: "Safety",
-        brand: "Cateye",
-        quantity: 4,
-        price: 39.99,
-        status: "Low Stock",
-        vehicles: ["City Cruiser"],
-    },
-    {
-        id: 15,
-        name: "Multi-Tool",
-        category: "Tools",
-        brand: "Park Tool",
-        quantity: 14,
-        price: 28.99,
-        status: "In Stock",
-        vehicles: ["Mountain Bike Pro", "Road Racer X"],
-    },
-    {
-        id: 16,
-        name: "Cassette",
-        category: "Drivetrain",
-        brand: "Shimano",
-        quantity: 7,
-        price: 95.99,
-        status: "In Stock",
-        vehicles: ["Road Racer X", "Gravel Explorer", "Touring Deluxe"],
-    },
-];
-
-const getStockStatus = (quantity: number) => {
-    if (quantity === 0) return "Out of Stock";
-    if (quantity <= 5) return "Low Stock";
-    return "In Stock";
-};
-
 const Inventory = () => {
-    const [data, setData] = useState<InventoryItem[]>(inventoryData);
+    const { addToast } = useToast();
+    const [data, setData] = useState<InventoryItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState({
         category: "all",
         brand: "all",
@@ -193,15 +34,32 @@ const Inventory = () => {
         search: "",
     });
 
+    // Fetch products on mount
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setIsLoading(true);
+            try {
+                const products = await productService.getProducts();
+                setData(products);
+            } catch (error) {
+                console.error('Failed to fetch products:', error);
+                addToast('error', 'Failed to load products. Please refresh the page.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
     const filteredData = useMemo(() => {
         return data.filter((item) => {
-            const computedStatus = getStockStatus(item.quantity);
-            const matchCategory = filters.category === "all" || item.category.toLowerCase() === filters.category.toLowerCase();
-            const matchBrand = filters.brand === "all" || item.brand.toLowerCase() === filters.brand.toLowerCase();
-            const matchStatus = filters.status === "all" || computedStatus.toLowerCase() === filters.status.toLowerCase();
+            const matchCategory = filters.category === "all" || item.categoryName.toLowerCase() === filters.category.toLowerCase();
+            const matchBrand = filters.brand === "all" || item.brandName.toLowerCase() === filters.brand.toLowerCase();
+            const matchStatus = filters.status === "all" || item.status.toLowerCase() === filters.status.toLowerCase();
             const matchSearch = filters.search === "" ||
                 item.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                item.vehicles.some(v => v.toLowerCase().includes(filters.search.toLowerCase()));
+                item.vehicleNames.some(v => v.toLowerCase().includes(filters.search.toLowerCase()));
 
             return matchCategory && matchBrand && matchStatus && matchSearch;
         });
@@ -220,25 +78,48 @@ const Inventory = () => {
         }
     };
 
-    const handleDelete = (ids: number[]) => {
-        setData(prev => prev.filter(item => !ids.includes(item.id)));
+    const handleDelete = async (ids: string[]) => {
+        try {
+            await Promise.all(ids.map(id => productService.deleteProduct(id)));
+            setData(prev => prev.filter(item => !ids.includes(item.id)));
+        } catch (error) {
+            console.error('Failed to delete products:', error);
+            addToast('error', 'Failed to delete products. Please try again.');
+        }
     };
 
-    const handleAddProduct = (newProduct: Omit<InventoryItem, "id" | "status">) => {
-        const newItem: InventoryItem = {
-            ...newProduct,
-            id: Math.max(0, ...data.map(item => item.id)) + 1,
-            status: "In Stock" // This status is actually computed in the table
-        };
-        setData(prev => [newItem, ...prev]);
+    const handleAddProduct = async (newProduct: Omit<InventoryItem, "id" | "status" | "categoryName" | "brandName" | "vehicleNames">) => {
+        try {
+            const createdProduct = await productService.createProduct(newProduct);
+            setData(prev => [createdProduct, ...prev]);
+        } catch (error) {
+            console.error('Failed to create product:', error);
+            addToast('error', error instanceof Error ? error.message : 'Failed to create product. Please try again.');
+        }
     };
 
-    const handleUpdateProduct = (updatedProduct: InventoryItem) => {
-        setData(prev => prev.map(item => (item.id === updatedProduct.id ? updatedProduct : item)));
+    const handleUpdateProduct = async (updatedProduct: InventoryItem) => {
+        try {
+            const updated = await productService.updateProduct(updatedProduct.id, {
+                name: updatedProduct.name,
+                category: updatedProduct.category,
+                brand: updatedProduct.brand,
+                quantity: updatedProduct.quantity,
+                price: updatedProduct.price,
+                vehicles: updatedProduct.vehicles,
+                hsnCode: updatedProduct.hsnCode,
+                shelfPosition: updatedProduct.shelfPosition,
+            });
+            setData(prev => prev.map(item => (item.id === updated.id ? updated : item)));
+        } catch (error) {
+            console.error('Failed to update product:', error);
+            addToast('error', 'Failed to update product. Please try again.');
+        }
     };
 
     return (
-        <div>
+        <div className="relative">
+            <SpinnerOverlay isVisible={isLoading} message="Loading products..." fullScreen />
             <PageMeta
                 title="Inventory Management | BikeBits"
                 description="Manage your inventory items and assigned vehicles."

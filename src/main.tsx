@@ -7,12 +7,18 @@ import App from "./App.tsx";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 
+import { ToastProvider } from "./context/ToastContext.tsx";
+import { ToastContainer } from "./components/common/ToastContainer.tsx";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <AppWrapper>
-        <App />
-      </AppWrapper>
+      <ToastProvider>
+        <AppWrapper>
+          <App />
+          <ToastContainer />
+        </AppWrapper>
+      </ToastProvider>
     </ThemeProvider>
   </StrictMode>,
 );
