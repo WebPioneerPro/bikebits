@@ -21,8 +21,8 @@ import AddProductPopup from "./AddProductPopup";
 
 interface InventoryTableProps {
   data: InventoryItem[];
-  onDelete: (ids: number[]) => void;
-  onAdd: (product: Omit<InventoryItem, "id" | "status">) => void;
+  onDelete: (ids: string[]) => void;
+  onAdd: (product: Omit<InventoryItem, "id" | "status" | "categoryName" | "brandName" | "vehicleNames">) => void;
   onUpdate: (product: InventoryItem) => void;
 }
 
@@ -50,7 +50,7 @@ const InventoryTable = ({ data, onDelete, onAdd, onUpdate }: InventoryTableProps
   };
 
   const handleVehicleBadgeClick = (item: InventoryItem) => {
-    setSelectedVehicles(item.vehicles);
+    setSelectedVehicles(item.vehicleNames);
     setSelectedItemName(item.name);
     openModal();
   };
@@ -154,7 +154,7 @@ const InventoryTable = ({ data, onDelete, onAdd, onUpdate }: InventoryTableProps
         size="sm"
         color="primary"
       >
-        {item.vehicles.length}
+        {item.vehicleNames.length}
       </Badge>
     </div>
   );
@@ -226,13 +226,14 @@ const InventoryTable = ({ data, onDelete, onAdd, onUpdate }: InventoryTableProps
           colInfos={[
             { key: true, dataProp: 'id', visible: false },
             { checkboxButton: { text: "", icon: '', color: 'blue', onClick: () => { } } },
-            { title: 'ID / Name', dataProp: 'name', sort: 'asc', getCellData: renderIdName },
-            { title: 'Category', dataProp: 'category' },
-            { title: 'Brand/Supplier', dataProp: 'brand' },
+            { title: 'Product Name', dataProp: 'name', sort: 'asc', getCellData: renderIdName },
+            { title: 'Shelf Position', dataProp: 'shelfPosition', getCellData: (item) => item.shelfPosition || '-' },
+            { title: 'Category', dataProp: 'categoryName' },
+            { title: 'Brand', dataProp: 'brandName' },
             { title: 'Quantity', dataProp: 'quantity' },
             { title: 'Price', dataProp: 'price', getCellData: (item) => `₹${item.price.toFixed(2)}` },
             { title: 'Status', dataProp: 'status', getCellData: renderStatus },
-            { title: 'Vehicles', dataProp: 'vehicles', getCellData: renderVehicles },
+            { title: 'Vehicles', dataProp: 'vehicleNames', getCellData: renderVehicles },
             { title: 'Actions', getCellData: renderActions },
           ]}
           tableData={currentFilteredData}

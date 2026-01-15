@@ -163,6 +163,61 @@ layer(base);
   --z-index-9999: 9999;
   --z-index-99999: 99999;
   --z-index-999999: 999999;
+
+  --animate-bike-bob: bike-bob 0.8s ease-in-out infinite;
+  --animate-bike-vibrate: bike-vibrate 0.1s linear infinite;
+  --animate-road-move: road-move 0.6s linear infinite;
+
+  @keyframes bike-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  @keyframes bike-vibrate {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(0.5px, 0.5px);
+    }
+    50% {
+      transform: translate(-0.5px, -0.5px);
+    }
+    75% {
+      transform: translate(0.5px, -0.5px);
+    }
+  }
+
+  @keyframes road-move {
+    0% {
+      transform: translateX(150%);
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      transform: translateX(-150%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes progress-shrink {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
+  }
+
+  --animate-progress-shrink: progress-shrink 5s linear forwards;
 }
 
 /*
