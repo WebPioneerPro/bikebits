@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "../icons";
+import { InboxIcon } from "../../icons";
 
 interface Option {
   value: string;
@@ -114,27 +115,43 @@ const Select: React.FC<SelectProps> = ({
       {isOpen && (
         <div className="absolute left-0 z-50 mt-2 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-900">
           <div role="listbox">
-            {options.map((option, index) => {
-              const isSelected = option.value === currentVal;
-              const isFocused = index === focusedIndex;
+            {options.length > 0 ? (
+              options.map((option, index) => {
+                const isSelected = option.value === currentVal;
+                const isFocused = index === focusedIndex;
 
-              return (
-                <div
-                  key={option.value}
-                  className={`flex cursor-pointer items-center px-4 py-2 text-sm transition-colors ${isSelected
-                    ? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
-                    : isFocused
-                      ? "bg-gray-50 dark:bg-gray-800"
-                      : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
-                    }`}
-                  onClick={() => handleSelect(option)}
-                  role="option"
-                  aria-selected={isSelected}
-                >
-                  {option.label}
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    key={option.value}
+                    className={`flex cursor-pointer items-center px-4 py-2 text-sm transition-colors ${isSelected
+                      ? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
+                      : isFocused
+                        ? "bg-gray-50 dark:bg-gray-800"
+                        : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                      }`}
+                    onClick={() => handleSelect(option)}
+                    role="option"
+                    aria-selected={isSelected}
+                  >
+                    {option.label}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+                <img 
+                  src="/images/favicon.ico" 
+                  alt="Empty" 
+                  className="w-12 h-12 mb-3 opacity-30 dark:opacity-20"
+                />
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  No options available
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Add items using the + button
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

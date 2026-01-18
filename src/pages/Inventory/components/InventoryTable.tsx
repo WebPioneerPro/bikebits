@@ -50,7 +50,7 @@ const InventoryTable = ({ data, onDelete, onAdd, onUpdate }: InventoryTableProps
   };
 
   const handleVehicleBadgeClick = (item: InventoryItem) => {
-    setSelectedVehicles(item.vehicleNames);
+    setSelectedVehicles(item.vehicleNames || []);
     setSelectedItemName(item.name);
     openModal();
   };
@@ -96,7 +96,7 @@ const InventoryTable = ({ data, onDelete, onAdd, onUpdate }: InventoryTableProps
       "Quantity": item.quantity,
       "Price": `$${item.price.toFixed(2)}`,
       "Status": getStockStatus(item.quantity),
-      "Assigned Vehicles": item.vehicles.join(", ")
+      "Assigned Vehicles": (item.vehicles || []).join(", ")
     }));
 
     // Create worksheet
@@ -154,7 +154,7 @@ const InventoryTable = ({ data, onDelete, onAdd, onUpdate }: InventoryTableProps
         size="sm"
         color="primary"
       >
-        {item.vehicleNames.length}
+        {item.vehicleNames?.length || 0}
       </Badge>
     </div>
   );
