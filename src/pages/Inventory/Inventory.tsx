@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import InventoryTable from "./components/InventoryTable";
 import InventoryFilter from "./components/InventoryFilter";
 import { productService } from "../../services/productService";
 import SpinnerOverlay from "../../components/common/SpinnerOverlay";
 import { useToast } from "../../context/ToastContext";
+import { useData } from "../../context/DataContext";
 
 // Define the data structure to share it
 export interface InventoryItem {
@@ -25,8 +26,7 @@ export interface InventoryItem {
 
 const Inventory = () => {
     const { addToast } = useToast();
-    const [data, setData] = useState<InventoryItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { products, isLoading, refreshProducts } = useData();
     const [filters, setFilters] = useState({
         category: "all",
         brand: "all",
@@ -34,36 +34,18 @@ const Inventory = () => {
         search: "",
     });
 
-    // Fetch products on mount
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setIsLoading(true);
-            try {
-                const products = await productService.getProducts();
-                setData(products);
-            } catch (error) {
-                console.error('Failed to fetch products:', error);
-                addToast('error', 'Failed to load products. Please refresh the page.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchProducts();
-    }, []);
-
     const filteredData = useMemo(() => {
-        return data.filter((item) => {
+        return products.filter((item) => {
             const matchCategory = filters.category === "all" || item.categoryName.toLowerCase() === filters.category.toLowerCase();
             const matchBrand = filters.brand === "all" || item.brandName.toLowerCase() === filters.brand.toLowerCase();
             const matchStatus = filters.status === "all" || item.status.toLowerCase() === filters.status.toLowerCase();
             const matchSearch = filters.search === "" ||
                 item.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                item.vehicleNames.some(v => v.toLowerCase().includes(filters.search.toLowerCase()));
+                (item.vehicleNames || []).some(v => v.toLowerCase().includes(filters.search.toLowerCase()));
 
             return matchCategory && matchBrand && matchStatus && matchSearch;
         });
-    }, [filters, data]);
+    }, [filters, products]);
 
     const handleFilterChange = (key: string, value: string) => {
         if (key === "reset") {
@@ -81,7 +63,7 @@ const Inventory = () => {
     const handleDelete = async (ids: string[]) => {
         try {
             await Promise.all(ids.map(id => productService.deleteProduct(id)));
-            setData(prev => prev.filter(item => !ids.includes(item.id)));
+            await refreshProducts();
         } catch (error) {
             console.error('Failed to delete products:', error);
             addToast('error', 'Failed to delete products. Please try again.');
@@ -90,8 +72,8 @@ const Inventory = () => {
 
     const handleAddProduct = async (newProduct: Omit<InventoryItem, "id" | "status" | "categoryName" | "brandName" | "vehicleNames">) => {
         try {
-            const createdProduct = await productService.createProduct(newProduct);
-            setData(prev => [createdProduct, ...prev]);
+            await productService.createProduct(newProduct);
+            await refreshProducts();
         } catch (error) {
             console.error('Failed to create product:', error);
             addToast('error', error instanceof Error ? error.message : 'Failed to create product. Please try again.');
@@ -100,7 +82,7 @@ const Inventory = () => {
 
     const handleUpdateProduct = async (updatedProduct: InventoryItem) => {
         try {
-            const updated = await productService.updateProduct(updatedProduct.id, {
+            await productService.updateProduct(updatedProduct.id, {
                 name: updatedProduct.name,
                 category: updatedProduct.category,
                 brand: updatedProduct.brand,
@@ -110,7 +92,7 @@ const Inventory = () => {
                 hsnCode: updatedProduct.hsnCode,
                 shelfPosition: updatedProduct.shelfPosition,
             });
-            setData(prev => prev.map(item => (item.id === updated.id ? updated : item)));
+            await refreshProducts();
         } catch (error) {
             console.error('Failed to update product:', error);
             addToast('error', 'Failed to update product. Please try again.');

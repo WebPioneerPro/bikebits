@@ -9,15 +9,18 @@ import { ThemeProvider } from "./context/ThemeContext.tsx";
 
 import { ToastProvider } from "./context/ToastContext.tsx";
 import { ToastContainer } from "./components/common/ToastContainer.tsx";
+import { DataProvider } from "./context/DataContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <ToastProvider>
-        <AppWrapper>
-          <App />
-          <ToastContainer />
-        </AppWrapper>
+        <DataProvider>
+          <AppWrapper>
+            <App />
+            <ToastContainer />
+          </AppWrapper>
+        </DataProvider>
       </ToastProvider>
     </ThemeProvider>
   </StrictMode>,

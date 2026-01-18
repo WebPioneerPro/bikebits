@@ -11,6 +11,7 @@ import { PopupProps } from "../../../interfaces/popup";
 import QuickAddPopup from "./QuickAddPopup";
 import SpinnerOverlay from "../../../components/common/SpinnerOverlay";
 import { useToast } from "../../../context/ToastContext";
+import { useData } from "../../../context/DataContext";
 import { categoryService } from "../../../services/categoryService";
 import { brandService } from "../../../services/brandService";
 import { vehicleService } from "../../../services/vehicleService";
@@ -40,52 +41,44 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
     initialData,
 }) => {
     const { addToast } = useToast();
+    const { categories, brands, vehicles, refreshCategories, refreshBrands, refreshVehicles } = useData();
     const [formData, setFormData] = useState<FormData>({
-        name: initialData?.name || "",
-        category: initialData?.category || "",
-        brand: initialData?.brand || "",
-        quantity: initialData?.quantity?.toString() || "",
-        price: initialData?.price?.toString() || "",
-        vehicles: initialData?.vehicles || [],
-        hsnCode: (initialData as any)?.hsnCode || "",
-        shelfPosition: (initialData as any)?.shelfPosition || "",
+        name: "",
+        category: "",
+        brand: "",
+        quantity: "",
+        price: "",
+        vehicles: [],
+        hsnCode: "",
+        shelfPosition: "",
     });
 
     const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [quickAddType, setQuickAddType] = useState<'category' | 'brand' | 'vehicle' | null>(null);
 
-    // Dynamic Options
-    const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
-    const [brands, setBrands] = useState<{ value: string; label: string }[]>([]);
-    const [vehicles, setVehicles] = useState<{ value: string; label: string }[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // Transform data for dropdowns
+    const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
+    const brandOptions = brands.map((b) => ({ value: b.id, label: b.name }));
+    const vehicleOptions = vehicles.map((v) => ({ value: v.id, label: v.name }));
 
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const [catData, brandData, vehicleData] = await Promise.all([
-                categoryService.getCategories(),
-                brandService.getBrands(),
-                vehicleService.getVehicles(),
-            ]);
-
-            setCategories(catData.map((c) => ({ value: c.id, label: c.name })));
-            setBrands(brandData.map((b) => ({ value: b.id, label: b.name })));
-            setVehicles(vehicleData.map((v) => ({ value: v.id, label: v.name })));
-        } catch (error) {
-            console.error("Failed to load options:", error);
-            addToast('error', 'Failed to load form options. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    // Update form when initialData changes
     useEffect(() => {
-        if (isOpen) {
-            loadData();
+        if (initialData) {
+            setFormData({
+                name: initialData.name || "",
+                category: initialData.category || "",
+                brand: initialData.brand || "",
+                quantity: initialData.quantity?.toString() || "",
+                price: initialData.price?.toString() || "",
+                vehicles: initialData.vehicles || [],
+                hsnCode: initialData.hsnCode || "",
+                shelfPosition: initialData.shelfPosition || "",
+            });
+        } else {
+            resetForm();
         }
-    }, [isOpen]);
+    }, [initialData, isOpen]);
 
     const validate = () => {
         const newErrors: Partial<Record<keyof FormData, string>> = {};
@@ -170,18 +163,15 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
         try {
             if (quickAddType === 'category') {
                 const newCategory = await categoryService.createCategory(newValue);
-                const newOption = { value: newCategory.id, label: newCategory.name };
-                setCategories(prev => [...prev, newOption]);
+                await refreshCategories();
                 handleChange('category', newCategory.id);
             } else if (quickAddType === 'brand') {
                 const newBrand = await brandService.createBrand(newValue);
-                const newOption = { value: newBrand.id, label: newBrand.name };
-                setBrands(prev => [...prev, newOption]);
+                await refreshBrands();
                 handleChange('brand', newBrand.id);
             } else if (quickAddType === 'vehicle') {
                 const newVehicle = await vehicleService.createVehicle(newValue);
-                const newOption = { value: newVehicle.id, label: newVehicle.name };
-                setVehicles(prev => [...prev, newOption]);
+                await refreshVehicles();
                 handleChange('vehicles', [...formData.vehicles, newVehicle.id]);
             }
         } catch (error) {
@@ -196,7 +186,6 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
         <>
             <Popup isOpen={isOpen} onClose={handleCancel} title={initialData ? "Edit Product" : "Add New Product"}>
                 <div className="relative">
-                    <SpinnerOverlay isVisible={isLoading} message="Loading form data..." />
                     <SpinnerOverlay isVisible={isSubmitting} message={initialData ? "Updating product..." : "Creating product..."} />
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
@@ -227,7 +216,7 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
                                     </CircularButton>
                                 </div>
                                 <Select
-                                    options={categories}
+                                    options={categoryOptions}
                                     placeholder="Select Category"
                                     value={formData.category}
                                     onChange={(value) => handleChange("category", value)}
@@ -253,7 +242,7 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
                                     </CircularButton>
                                 </div>
                                 <Select
-                                    options={brands}
+                                    options={brandOptions}
                                     placeholder="Select Brand"
                                     value={formData.brand}
                                     onChange={(value) => handleChange("brand", value)}
@@ -279,6 +268,7 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
                                     onChange={(e) => handleChange("quantity", e.target.value)}
                                     error={!!errors.quantity}
                                     hint={errors.quantity}
+                                    className="[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                             </div>
 
@@ -295,6 +285,7 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
                                     onChange={(e) => handleChange("price", e.target.value)}
                                     error={!!errors.price}
                                     hint={errors.price}
+                                    className="[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                             </div>
                         </div>
@@ -337,7 +328,7 @@ const AddProductPopup: FC<AddProductPopupProps> = ({
                                 </CircularButton>
                             </div>
                             <MultiSelect
-                                options={vehicles}
+                                options={vehicleOptions}
                                 placeholder="Select Vehicles"
                                 value={formData.vehicles}
                                 onChange={(values) => handleChange("vehicles", values)}

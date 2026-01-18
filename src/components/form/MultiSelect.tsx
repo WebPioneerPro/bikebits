@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "../icons";
 import SearchBox from '../form/input/SearchBox';
 import Checkbox from './input/Checkbox';
+import { InboxIcon } from "../../icons";
 
 interface Option {
   value: string;
@@ -279,7 +280,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
               {/* Scrollable Options List */}
               <div
-                className="overflow-y-auto max-h-60 custom-scrollbar"
+                className="overflow-y-auto max-h-40 custom-scrollbar"
                 role="listbox"
                 aria-label={label}
               >
@@ -309,6 +310,20 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                       </div>
                     );
                   })
+                ) : options.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+                    <img 
+                      src="/images/favicon.ico" 
+                      alt="Empty" 
+                      className="w-12 h-12 mb-3 opacity-30 dark:opacity-20"
+                    />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      No options available
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Add items using the + button
+                    </p>
+                  </div>
                 ) : (
                   <div className="p-4 text-sm text-center text-gray-500 dark:text-gray-400">
                     No options found
