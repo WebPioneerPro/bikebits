@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '../config/api';
+import { apiClient } from './apiClient';
 
 export interface BrandAPIResponse {
   id: string;
@@ -24,7 +25,7 @@ const transformFromAPIResponse = (apiBrand: BrandAPIResponse): Brand => {
 
 export const brandService = {
   async getBrands(): Promise<Brand[]> {
-    const response = await fetch(API_ENDPOINTS.brands);
+    const response = await apiClient.fetch(API_ENDPOINTS.brands);
 
     if (!response.ok) {
       throw new Error('Failed to fetch brands');
@@ -35,11 +36,8 @@ export const brandService = {
   },
 
   async createBrand(name: string): Promise<Brand> {
-    const response = await fetch(API_ENDPOINTS.brands, {
+    const response = await apiClient.fetch(API_ENDPOINTS.brands, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ brandName: name }),
     });
 

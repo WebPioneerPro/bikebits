@@ -55,6 +55,8 @@ import { ReactComponent as MoreDotIcon } from "./moredot.svg?react";
 import { ReactComponent as AlertHexaIcon } from "./alert-hexa.svg?react";
 import { ReactComponent as ErrorHexaIcon } from "./info-hexa.svg?react";
 import { ReactComponent as InboxIcon } from "./inbox.svg?react";
+import { ReactComponent as LogoutIcon } from "./logout.svg?react";
+import { ReactComponent as ChevronDownDropdownIcon } from "./chevron-down-dropdown.svg?react";
 
 export {
   InboxIcon,
@@ -114,4 +116,6 @@ export {
   ChatIcon,
   AngleLeftIcon,
   AngleRightIcon,
+  LogoutIcon,
+  ChevronDownDropdownIcon,
 };

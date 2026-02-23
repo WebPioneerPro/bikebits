@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
+import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen] = useState(false);
@@ -115,7 +116,7 @@ const AppHeader: React.FC = () => {
             {/* <!-- Notification Menu Area --> */}
           </div>
           {/* <!-- User Area --> */}
-          {/* <UserDropdown /> */}
+          <UserDropdown />
         </div>
       </div>
     </header>

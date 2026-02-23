@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '../config/api';
+import { apiClient } from './apiClient';
 
 export interface CategoryAPIResponse {
   id: string;
@@ -24,7 +25,7 @@ const transformFromAPIResponse = (apiCategory: CategoryAPIResponse): Category =>
 
 export const categoryService = {
   async getCategories(): Promise<Category[]> {
-    const response = await fetch(API_ENDPOINTS.categories);
+    const response = await apiClient.fetch(API_ENDPOINTS.categories);
 
     if (!response.ok) {
       throw new Error('Failed to fetch categories');
@@ -35,11 +36,8 @@ export const categoryService = {
   },
 
   async createCategory(name: string): Promise<Category> {
-    const response = await fetch(API_ENDPOINTS.categories, {
+    const response = await apiClient.fetch(API_ENDPOINTS.categories, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ categoryName: name }),
     });
 
