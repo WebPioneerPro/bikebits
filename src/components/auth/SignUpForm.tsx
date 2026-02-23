@@ -22,10 +22,10 @@ export default function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isChecked) {
-      setError("Please agree to the Terms and Conditions");
-      return;
-    }
+    // if (!isChecked) {
+    //   setError("Please agree to the Terms and Conditions");
+    //   return;
+    // }
     setError(null);
     setIsSubmitting(true);
 
