@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '../config/api';
+import { apiClient } from './apiClient';
 
 export interface CreateProductDTO {
   name: string;
@@ -94,12 +95,9 @@ const transformFromAPIResponse = (apiProduct: ProductAPIResponse): Product => {
 export const productService = {
   async createProduct(productData: CreateProductDTO): Promise<Product> {
     const apiPayload = transformToAPIPayload(productData);
-    
-    const response = await fetch(API_ENDPOINTS.products, {
+
+    const response = await apiClient.fetch(API_ENDPOINTS.products, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(apiPayload),
     });
 
@@ -113,7 +111,7 @@ export const productService = {
   },
 
   async getProducts(): Promise<Product[]> {
-    const response = await fetch(API_ENDPOINTS.products);
+    const response = await apiClient.fetch(API_ENDPOINTS.products);
 
     if (!response.ok) {
       throw new Error('Failed to fetch products');
@@ -125,12 +123,9 @@ export const productService = {
 
   async updateProduct(id: string, productData: Partial<CreateProductDTO>): Promise<Product> {
     const apiPayload = productData.name ? transformToAPIPayload(productData as CreateProductDTO) : productData;
-    
-    const response = await fetch(`${API_ENDPOINTS.products}/${id}`, {
+
+    const response = await apiClient.fetch(`${API_ENDPOINTS.products}/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(apiPayload),
     });
 
@@ -144,7 +139,7 @@ export const productService = {
   },
 
   async deleteProduct(id: string): Promise<void> {
-    const response = await fetch(`${API_ENDPOINTS.products}/${id}`, {
+    const response = await apiClient.fetch(`${API_ENDPOINTS.products}/${id}`, {
       method: 'DELETE',
     });
 

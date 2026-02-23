@@ -4,15 +4,25 @@ import FormElements from "./pages/Forms/FormElements";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Inventory from "./pages/Inventory/Inventory";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import SignIn from "./pages/AuthPages/SignIn";
+import SignUp from "./pages/AuthPages/SignUp";
 
 export default function App() {
   return (
-    <>
+    <AuthProvider>
       <Router>
         <ScrollToTop />
         <Routes>
           {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index path="/" element={<Inventory />} />
 
             {/* Others Page */}
@@ -37,13 +47,13 @@ export default function App() {
           </Route>
 
           {/* Auth Layout */}
-          {/* <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} /> */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
 
           {/* Fallback Route */}
           {/* <Route path="*" element={<NotFound />} /> */}
         </Routes>
       </Router>
-    </>
+    </AuthProvider>
   );
 }

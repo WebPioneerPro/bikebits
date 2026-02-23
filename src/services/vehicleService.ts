@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '../config/api';
+import { apiClient } from './apiClient';
 
 export interface VehicleAPIResponse {
   id: string;
@@ -24,7 +25,7 @@ const transformFromAPIResponse = (apiVehicle: VehicleAPIResponse): Vehicle => {
 
 export const vehicleService = {
   async getVehicles(): Promise<Vehicle[]> {
-    const response = await fetch(API_ENDPOINTS.vehicles);
+    const response = await apiClient.fetch(API_ENDPOINTS.vehicles);
 
     if (!response.ok) {
       throw new Error('Failed to fetch vehicles');
@@ -35,11 +36,8 @@ export const vehicleService = {
   },
 
   async createVehicle(name: string): Promise<Vehicle> {
-    const response = await fetch(API_ENDPOINTS.vehicles, {
+    const response = await apiClient.fetch(API_ENDPOINTS.vehicles, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ vehicleName: name }),
     });
 

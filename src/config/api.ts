@@ -5,5 +5,9 @@ export const API_ENDPOINTS = {
   categories: `${API_BASE_URL}/categories`,
   brands: `${API_BASE_URL}/brands`,
   vehicles: `${API_BASE_URL}/vehicles`,
-  // Add more endpoints here as needed
+  auth: {
+    login: `${API_BASE_URL}/auth/login`,
+    signup: `${API_BASE_URL}/auth/signup`,
+    me: `${API_BASE_URL}/auth/me`,
+  },
 };
